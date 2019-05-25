@@ -11,6 +11,9 @@ import requests_cache
 
 
 class Market:
+    """
+    API Documentation: https://dirtprotocol.github.io/openmarketcap-api/
+    """
     _session = None
     __DEFAULT_BASE_URL = 'http://api.openmarketcap.com/api/v1/'
     __DEFAULT_TIMEOUT = 30  # in seconds
