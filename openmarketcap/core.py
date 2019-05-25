@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 import os
 import tempfile
-import logging
+from collections import namedtuple
+
 import requests_cache
 
 
-class Market(object):
+class Market:
     _session = None
     __DEFAULT_BASE_URL = 'http://api.openmarketcap.com/api/v1/'
-    __DEFAULT_TIMEOUT = 30
+    __DEFAULT_TIMEOUT = 30  # in seconds
     __TEMPDIR_CACHE = True
 
     __DEFAULT_CACHE_EXPIRY_TIME = 60  # in seconds
@@ -31,7 +33,8 @@ class Market(object):
                                                               backend='sqlite',
                                                               expire_after=self.__DEFAULT_CACHE_EXPIRY_TIME)
             self._session.headers.update({'Content-Type': 'application/json'})
-            self._session.headers.update({'User-agent': 'openmarketcap - python wrapper around openmarketcap.com (github.com/12Siva/openmarketcap-py)'})
+            self._session.headers.update({
+                'User-agent': 'openmarketcap - python wrapper around openmarketcap.com (github.com/12Siva/openmarketcap-py)'})
 
         return self._session
 
@@ -51,3 +54,25 @@ class Market(object):
             return exception
 
         return response
+
+    def get_tokens_data(self):
+        """
+        Get token data
+        :return: list of Token objects
+        """
+        response = self.__request('tokens', params=None)
+        tokens_data = response['data']
+
+        tokens = [namedtuple("Token", token_data.keys())(*token_data.values()) for token_data in tokens_data]
+
+        return tokens
+
+    def listings(self):
+        """
+        Return a list of tokens that are on OpenMarketCap
+        :return: list of token symbols
+        """
+        response = self.__request('tokens', params=None)
+        logging.debug(f'Raw response of the tokens endpoint {response}')
+        tokens = [token_listing['symbol'] for token_listing in response['data']]
+        return tokens
